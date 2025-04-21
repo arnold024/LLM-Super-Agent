@@ -4,7 +4,7 @@ import os
 # Add the src directory to the Python path to enable absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-from llm_integration.generic_llm_connector import GenericLLMConnector
+from llm_integration.google_gemini_connector import GoogleGeminiConnector # Import GoogleGeminiConnector
 from agent.basic_agent import BasicAgent
 from agent.communication import AgentCommunicationChannel
 from memory.memory import Memory
@@ -23,13 +23,14 @@ def main():
     memory = Memory()
     plugin_manager = PluginManager()
 
-    # Create dummy LLM connectors
-    dummy_llm_1 = GenericLLMConnector("dummy-model-A")
-    dummy_llm_2 = GenericLLMConnector("dummy-model-B")
+    # Create LLM connectors (using GoogleGeminiConnector)
+    # Note: Ensure GOOGLE_API_KEY environment variable is set for this to work
+    gemini_llm_1 = GoogleGeminiConnector("gemini-pro")
+    gemini_llm_2 = GoogleGeminiConnector("gemini-pro") # Can use different models if needed
 
-    # Create basic agents, passing the necessary components
-    agent_alpha = BasicAgent("AlphaAgent", dummy_llm_1, communication_channel, memory, plugin_manager)
-    agent_beta = BasicAgent("BetaAgent", dummy_llm_2, communication_channel, memory, plugin_manager)
+    # Create basic agents, passing the necessary components and the Gemini connector
+    agent_alpha = BasicAgent("AlphaAgent", gemini_llm_1, communication_channel, memory, plugin_manager)
+    agent_beta = BasicAgent("BetaAgent", gemini_llm_2, communication_channel, memory, plugin_manager)
 
     # Create the orchestrator with the agents
     orchestrator = SimpleOrchestrator(agents=[agent_alpha, agent_beta])
