@@ -31,10 +31,23 @@ def test_multi_agent_task():
 
     # Decompose the main task into subtasks manually for this test
     subtask_poem = Task("Write a poem", input_data={"prompt": "Write a poem.", "required_capability": "poetry"})
-    subtask_html = Task("Wrap content in HTML", input_data={"prompt": "Wrap the poem in HTML tags.", "required_capability": "html"})
+    # Pass the poem content from Gemini to ChatGPT for wrapping
+    poem_content = memory.retrieve(f"task_output_{subtask_poem.task_id}")
+    subtask_html = Task("Wrap content in HTML", input_data={"prompt": f"Wrap the following poem in HTML tags:\n{poem_content}", "required_capability": "html"})
 
     # Add subtasks to the orchestrator with required capabilities
     orchestrator.add_task(subtask_poem, capability="poetry")
+
+    # Run the orchestrator to process the poem first
+    orchestrator.run()
+
+    # Retrieve the poem content from memory after processing
+    poem_content = memory.retrieve(f"task_output_{subtask_poem.task_id}")["response"]
+
+    # Update the HTML wrapping subtask with the actual poem content
+    subtask_html = Task("Wrap content in HTML", input_data={"prompt": f"Wrap the following poem in HTML tags:\n{poem_content}", "required_capability": "html"})
+
+    # Add the updated HTML wrapping subtask to the orchestrator
     orchestrator.add_task(subtask_html, capability="html")
 
     # Run the orchestrator
