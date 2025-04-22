@@ -13,7 +13,7 @@ class BasicAgent(Agent):
     This agent uses a TaskExecutor to process tasks and includes a basic feedback loop.
     """
 
-    def __init__(self, name: str, llm_connector: LLMInterface, communication_channel: AgentCommunicationChannel, memory: Memory, plugin_manager: PluginManager):
+    def __init__(self, name: str, llm_connector: LLMInterface, communication_channel: AgentCommunicationChannel, memory: Memory, plugin_manager: PluginManager, capabilities: list = None):
         """
         Initializes a BasicAgent.
 
@@ -23,10 +23,18 @@ class BasicAgent(Agent):
             communication_channel: The communication channel for inter-agent messaging.
             memory: The memory component for the agent to interact with.
             plugin_manager: The plugin manager for the agent to access plugins.
+            capabilities: A list of capabilities or task types the agent can handle.
         """
         super().__init__(name, llm_connector, communication_channel, memory, plugin_manager) # Pass communication_channel, memory, and plugin_manager to base class
         self._task_executor = TaskExecutor()
         self._evaluator = BasicEvaluator() # Instantiate the evaluator
+        self._capabilities = capabilities or []
+
+    def get_capabilities(self):
+        """
+        Returns the list of capabilities of the agent.
+        """
+        return self._capabilities
 
     def process_task(self, task: Task) -> Task:
         """
