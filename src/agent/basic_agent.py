@@ -5,7 +5,7 @@ from src.task_management.task_executor import TaskExecutor
 from src.evaluation.evaluation_framework import BasicEvaluator # Import BasicEvaluator
 from src.memory.memory import Memory # Import Memory class
 from src.plugins.plugin_manager import PluginManager # Import PluginManager class
-from src.agent.communication import AgentCommunicationChannel # Import AgentCommunicationChannel
+from src.agent.communication import AgentCommunicationChannel, AgentMessage # Import AgentCommunicationChannel and AgentMessage
 
 class BasicAgent(Agent):
     """
@@ -53,10 +53,65 @@ class BasicAgent(Agent):
         self._memory.store(memory_key, processed_task.output_data)
         print(f"Agent '{self.name}' stored task output in memory with key: {memory_key}")
 
+        # Perform memory consolidation after storing
+        self._memory.consolidate(max_size=100)
+        print(f"Agent '{self.name}' performed memory consolidation.")
+
+        # Demonstrate memory search capability (basic example)
+        search_query = "task output" # Example search query
+        print(f"Agent '{self.name}' searching memory for: '{search_query}'")
+        search_results = self._memory.search(search_query)
+        print(f"Agent '{self.name}' memory search results for '{search_query}': {search_results}")
+
+        # Basic adaptation mechanism (placeholder)
+        self.adapt(evaluation_result, search_results)
+
         # In a more advanced system, the agent would use this evaluation_result
-        # to refine its approach, update memory, or communicate with other agents.
+        # and search results to refine its approach, update memory, or communicate with other agents.
 
         return processed_task
+
+    def adapt(self, evaluation_result, search_results):
+        """
+        A basic placeholder adaptation mechanism.
+        This method can be expanded to modify agent behavior based on evaluation and memory search.
+
+        Args:
+            evaluation_result: The result of evaluating the last task.
+            search_results: The results of searching memory related to the task.
+        """
+        print(f"Agent '{self.name}' adapting based on evaluation and memory search.")
+        # Placeholder logic: just print the inputs
+        print(f"Evaluation: {evaluation_result}")
+        print(f"Memory Search Results: {search_results}")
+
+    def handle_message(self, message: AgentMessage):
+        """
+        Basic message handler for the agent.
+        This method can be expanded to process different message types and perform actions.
+
+        Args:
+            message: The AgentMessage object to handle.
+        """
+        print(f"Agent '{self.name}' received message from {message.sender_id} of type {message.message_type}")
+        # Placeholder: just print the message content
+        print(f"Message payload: {message.payload}")
+
+    def delegate_task(self, task: Task, recipient_agent_id: str):
+        """
+        Delegates a task to another agent by sending a message.
+
+        Args:
+            task: The Task object to delegate.
+            recipient_agent_id: The ID of the agent to delegate the task to.
+        """
+        message_payload = {
+            "task_id": task.task_id,
+            "description": task.description,
+            "input_data": task.input_data
+        }
+        self.send_message(recipient_agent_id, "task_delegation", message_payload, task.task_id)
+        print(f"Agent '{self.name}' delegated task {task.task_id} to agent {recipient_agent_id}")
 
 # Example usage (for testing purposes, can be removed later)
 if __name__ == "__main__":

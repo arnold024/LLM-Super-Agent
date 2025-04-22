@@ -1,12 +1,18 @@
+import sys
+import os
 import logging
 from typing import List, Dict, Any
-from src.task_management.task import Task
-from src.task_management.task_queue import TaskQueue
-from src.agent.agent import Agent
-from src.llm_integration.llm_interface import LLMInterface
-from src.agent.basic_agent import BasicAgent # Assuming BasicAgent for initial implementation
-from src.llm_integration.generic_llm_connector import GenericLLMConnector # Assuming GenericLLMConnector for initial implementation
-from src.agent.communication import AgentCommunicationChannel # Import AgentCommunicationChannel
+
+# Add the src directory to the Python path to enable absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from ..task_management.task import Task
+from ..task_management.task_queue import TaskQueue
+from ..agent.agent import Agent
+from ..llm_integration.llm_interface import LLMInterface
+from ..agent.basic_agent import BasicAgent # Assuming BasicAgent for initial implementation
+from ..llm_integration.generic_llm_connector import GenericLLMConnector # Assuming GenericLLMConnector for initial implementation
+from ..agent.communication import AgentCommunicationChannel # Import AgentCommunicationChannel
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,7 +36,9 @@ class SimpleOrchestrator:
         # The agents list passed to the constructor should ideally already have the channel
         # For this simple orchestrator, we'll just store them.
         self._agents: Dict[str, Agent] = {agent.get_name(): agent for agent in agents}
-        logging.info(f"Orchestrator initialized with agents: {list(self._agents.keys())}")
+        self._agent_names = list(self._agents.keys())
+        self._next_agent_index = 0
+        logging.info(f"Orchestrator initialized with agents: {self._agent_names}")
 
     def add_task(self, task: Task):
         """
@@ -60,12 +68,21 @@ class SimpleOrchestrator:
                     continue
 
                 # Get the first agent (rudimentary routing)
-                agent_name = list(self._agents.keys())[0]
+                agent_name = self._agent_names[self._next_agent_index]
                 agent = self._agents[agent_name]
 
                 logging.info(f"Assigning task {task.task_id} to agent {agent.get_name()}")
                 processed_task = agent.process_task(task)
                 logging.info(f"Task {processed_task.task_id} processed with status: {processed_task.status}")
+
+                # Update the index for round-robin
+                self._next_agent_index = (self._next_agent_index + 1) % len(self._agent_names)
+
+                # Process messages for each agent
+                for agent in self._agents.values():
+                    messages = agent.receive_messages()
+                    for message in messages:
+                        agent.handle_message(message)
 
         logging.info("Orchestrator finished processing all tasks.")
 
@@ -81,6 +98,9 @@ if __name__ == "__main__":
     # Create basic agents, passing the communication channel, memory, and plugin manager
     # Note: Memory and PluginManager are not used by SimpleOrchestrator directly,
     # but are passed to agents during their creation.
+    from src.memory.memory import Memory
+    from src.plugins.plugin_manager import PluginManager
+
     memory = Memory() # Instantiate Memory
     plugin_manager = PluginManager() # Instantiate PluginManager
 
@@ -99,6 +119,13 @@ if __name__ == "__main__":
     orchestrator.add_task(task1)
     orchestrator.add_task(task2)
     orchestrator.add_task(task3)
+
+    # Demonstrate task delegation: Agent AlphaAgent delegates a task to BetaAgent
+    delegation_task = Task("Delegated task example", input_data={"prompt": "This task was delegated."})
+    agent_alpha.delegate_task(delegation_task, "BetaAgent")
+
+    # Add the delegated task to the queue to be processed
+    orchestrator.add_task(delegation_task)
 
     # Run the orchestrator
     orchestrator.run()

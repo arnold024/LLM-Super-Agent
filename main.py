@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'
 from llm_integration.google_gemini_connector import GoogleGeminiConnector # Import GoogleGeminiConnector
 from agent.basic_agent import BasicAgent
 from agent.communication import AgentCommunicationChannel
-from memory.memory import Memory
+from memory.sqlite_memory import SQLiteMemory # Import SQLiteMemory
 from plugins.plugin_manager import PluginManager
 from task_management.task import Task
 from orchestrator.simple_orchestrator import SimpleOrchestrator
@@ -20,13 +20,14 @@ def main():
 
     # Initialize core components
     communication_channel = AgentCommunicationChannel()
-    memory = Memory()
+    memory = SQLiteMemory() # Use SQLiteMemory instead of in-memory Memory
     plugin_manager = PluginManager()
 
     # Create LLM connectors (using GoogleGeminiConnector)
     # Note: Ensure GOOGLE_API_KEY environment variable is set for this to work
-    gemini_llm_1 = GoogleGeminiConnector("gemini-pro")
-    gemini_llm_2 = GoogleGeminiConnector("gemini-pro") # Can use different models if needed
+    # Using 'models/gemini-2.5-flash-preview-04-17' as it supports generateContent
+    gemini_llm_1 = GoogleGeminiConnector("models/gemini-2.5-flash-preview-04-17")
+    gemini_llm_2 = GoogleGeminiConnector("models/gemini-2.5-flash-preview-04-17") # Can use different models if needed
 
     # Create basic agents, passing the necessary components and the Gemini connector
     agent_alpha = BasicAgent("AlphaAgent", gemini_llm_1, communication_channel, memory, plugin_manager)

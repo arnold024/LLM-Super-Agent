@@ -89,4 +89,14 @@ class Agent(abc.ABC):
         """
         return self._plugin_manager
 
+    @abc.abstractmethod
+    def handle_message(self, message: AgentMessage):
+        """
+        Abstract method to handle a received message.
+
+        Args:
+            message: The AgentMessage object to handle.
+        """
+        pass
+
 # Future methods for agent collaboration, memory interaction, etc., could be added here.
