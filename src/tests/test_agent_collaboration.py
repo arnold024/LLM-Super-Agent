@@ -5,7 +5,8 @@ import logging
 # Add the src directory to the Python path to enable absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ..llm_integration.generic_llm_connector import GenericLLMConnector
+from ..llm_integration.google_gemini_connector import GoogleGeminiConnector
+from ..llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
 from ..agent.basic_agent import BasicAgent
 from ..agent.communication import AgentCommunicationChannel, AgentMessage
 from ..memory.memory import Memory
@@ -21,8 +22,9 @@ def test_agent_collaboration():
     plugin_manager = PluginManager()
 
     # Create two agents with dummy LLM connectors
-    llm_connector_1 = GenericLLMConnector("dummy-llm-1")
-    llm_connector_2 = GenericLLMConnector("dummy-llm-2")
+    # Create two agents with actual LLM connectors
+    llm_connector_1 = GoogleGeminiConnector("gemini-pro") # Use a real Gemini model name
+    llm_connector_2 = OpenAIChatGPTConnector("gpt-4") # Use a real OpenAI model name
 
     agent1 = BasicAgent("Agent1", llm_connector_1, communication_channel, memory, plugin_manager)
     agent2 = BasicAgent("Agent2", llm_connector_2, communication_channel, memory, plugin_manager)

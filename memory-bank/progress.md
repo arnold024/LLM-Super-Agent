@@ -21,3 +21,9 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 [2025-04-21 18:16:00] Completed Phase 3: Advanced Planning and Memory. Implemented basic planning, memory management, knowledge integration placeholders, and enhanced feedback loops.
 [2025-04-21 18:16:00] Completed Phase 4: Extensibility and User Interface (Optional). Implemented basic plugin manager and a Command-Line Interface (CLI).
 [2025-04-22 16:31:43] Enhanced orchestrator with round-robin task assignment, message processing, and agent collaboration features implemented and tested.
+[2025-04-25 18:14:52] Completed: Replaced GenericLLMConnector with actual LLM connectors in simple_orchestrator example and test files.
+[2025-04-25 18:17:24] Completed: Integrated real LLM connectors (Gemini and OpenAI) into main.py.
+[2025-04-25 18:21:35] Completed: Integrated BasicPlanner into SimpleOrchestrator and main.py.
+[2025-04-25 18:27:17] Completed: Enhanced BasicPlanner to use LLM for plan generation.
+[2025-04-25 18:34:51] Completed: Enhanced SQLiteMemory search with optional LLM-based term generation.
+[2025-04-25 18:36:45] Completed: Implemented basic consolidate method in SQLiteMemory.
