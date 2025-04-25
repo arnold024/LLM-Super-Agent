@@ -24,7 +24,7 @@ def test_orchestrator_agent():
     orchestrator = OrchestratorAgent("Orchestrator", communication_channel, memory, plugin_manager)
 
     # Create a user request task
-    user_task = Task("User request", input_data={"prompt": "Write a poem about the sea wrapped in HTML."})
+    user_task = Task("User request", input_data={"prompt": "Write a few sentences about the weather and base64 decode it."})
 
     # Process the user request with the orchestrator
     result_task = orchestrator.process_task(user_task)
