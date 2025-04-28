@@ -55,18 +55,32 @@ def main():
             user_input = input("Enter command: ")
             if user_input.lower() == 'exit':
                 break
+            if not user_input.strip():
+                continue
 
             # Simple command parsing
             parts = user_input.strip().split(maxsplit=1)
             command = parts[0].lower()
             args = parts[1] if len(parts) > 1 else ""
+            if command == 'add':
+                command = 'goal'
 
             if command == 'goal' and args:
                 print(f"Received goal: {args}")
-                orchestrator.process_goal(args)
+                plan_tasks = orchestrator.process_goal(args)
                 print("\nRunning orchestrator...")
                 orchestrator.run()
                 print("\nTask Processing Complete.")
+                # Display outputs for the tasks just processed (the plan)
+                print("\nTask Results:")
+                if plan_tasks:
+                    for idx, task in enumerate(plan_tasks, start=1):
+                        print(f"{idx}. [{task.status}] {task.description}")
+                        if task.output_data:
+                            for key, value in task.output_data.items():
+                                print(f"    {key}: {value}")
+                else:
+                    print("No task results available.")
 
             elif command == 'list' and args == 'tasks':
                 print("\nCurrent Tasks in Queue:")

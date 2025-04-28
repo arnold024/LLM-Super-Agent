@@ -1,5 +1,5 @@
 import queue
-from typing import Optional
+from typing import Optional, List
 from src.task_management.task import Task
 
 class TaskQueue:

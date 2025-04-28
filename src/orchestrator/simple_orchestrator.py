@@ -66,6 +66,7 @@ class SimpleOrchestrator:
         for task in plan_tasks:
             self.add_task(task)
         logging.info("Generated tasks added to the queue.")
+        return plan_tasks
 
     def run(self):
         """
