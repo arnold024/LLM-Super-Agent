@@ -5,7 +5,7 @@ import logging
 # Add the src directory to the Python path to enable absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ..llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
+from src.llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

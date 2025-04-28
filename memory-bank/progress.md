@@ -27,3 +27,5 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 [2025-04-25 18:27:17] Completed: Enhanced BasicPlanner to use LLM for plan generation.
 [2025-04-25 18:34:51] Completed: Enhanced SQLiteMemory search with optional LLM-based term generation.
 [2025-04-25 18:36:45] Completed: Implemented basic consolidate method in SQLiteMemory.
+[2025-04-25 18:40:30] Completed: Enhanced main CLI with command parsing and improved output.
+[2025-04-25 18:48:08] Completed: Added 'list tasks' and 'search memory' commands to the main CLI.

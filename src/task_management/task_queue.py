@@ -53,6 +53,14 @@ class TaskQueue:
         """
         return self._queue.qsize()
 
+    def get_all_tasks(self) -> List[Task]:
+        """
+        Returns a list of all tasks currently in the queue without removing them.
+        Note: This accesses the internal queue implementation and should be used with caution.
+        """
+        # Access the internal deque and convert it to a list
+        return list(self._queue.queue)
+
 # Example usage (for testing purposes, can be removed later)
 if __name__ == "__main__":
     task_queue = TaskQueue()

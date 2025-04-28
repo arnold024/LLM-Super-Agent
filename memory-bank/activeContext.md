@@ -25,3 +25,5 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 [2025-04-25 18:27:00] Recent Changes: Enhanced BasicPlanner to use an LLM for generating plans from high-level goals.
 [2025-04-25 18:34:36] Recent Changes: Enhanced SQLiteMemory search functionality to optionally use an LLM for generating search terms.
 [2025-04-25 18:36:29] Recent Changes: Implemented a basic consolidate method in SQLiteMemory, with optional LLM integration for strategy suggestions.
+[2025-04-25 18:40:14] Recent Changes: Enhanced the main CLI in main.py with basic command parsing and improved output.
+[2025-04-25 18:47:39] Recent Changes: Added 'list tasks' and 'search memory' commands to the main CLI in main.py.

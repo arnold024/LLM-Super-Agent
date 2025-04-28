@@ -1,20 +1,20 @@
 import sys
 import os
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 # Add the src directory to the Python path to enable absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ..task_management.task import Task
-from ..task_management.task_queue import TaskQueue
-from ..agent.agent import Agent
-from ..llm_integration.llm_interface import LLMInterface
-from ..agent.basic_agent import BasicAgent # Assuming BasicAgent for initial implementation
-from ..planning.planner import Planner # Import Planner
-from ..llm_integration.google_gemini_connector import GoogleGeminiConnector
-from ..llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
-from ..agent.communication import AgentCommunicationChannel # Import AgentCommunicationChannel
+from src.task_management.task import Task
+from src.task_management.task_queue import TaskQueue
+from src.agent.agent import Agent
+from src.llm_integration.llm_interface import LLMInterface
+from src.agent.basic_agent import BasicAgent # Assuming BasicAgent for initial implementation
+from src.planning.planner import Planner # Import Planner
+from src.llm_integration.google_gemini_connector import GoogleGeminiConnector
+from src.llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
+from src.agent.communication import AgentCommunicationChannel # Import AgentCommunicationChannel
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -103,6 +103,48 @@ class SimpleOrchestrator:
                         agent.handle_message(message)
 
         logging.info("Orchestrator finished processing all tasks.")
+
+    def get_tasks(self) -> List[Task]:
+        """
+        Returns the current list of tasks in the orchestrator's queue.
+        Note: This returns a copy of the tasks currently in the queue.
+        """
+        # Access the internal task queue's tasks.
+        # Depending on the TaskQueue implementation, this might need adjustment.
+        # Assuming TaskQueue has a method to get tasks or is iterable.
+        # For now, let's assume direct access for simplicity in this example.
+        # A more robust TaskQueue might require a dedicated method like get_all_tasks().
+        # Use the new get_all_tasks method from TaskQueue
+        return self._task_queue.get_all_tasks()
+
+    def search_memory(self, query: str, **kwargs) -> List[Dict[str, Any]]:
+        """
+        Searches the memory of the first agent managed by the orchestrator.
+        In a more complex system, this might search a shared memory or
+        coordinate search across multiple agents' memories.
+
+        Args:
+            query: The search query string.
+            **kwargs: Additional parameters for the memory search.
+
+        Returns:
+            A list of search results from the agent's memory.
+        """
+        if not self._agents:
+            logging.warning("No agents available to perform memory search.")
+            return []
+
+        # Access the memory of the first agent
+        first_agent_name = self._agent_names[0]
+        first_agent = self._agents[first_agent_name]
+
+        # Assuming the agent has a 'memory' attribute that implements MemoryInterface
+        if hasattr(first_agent, 'memory') and first_agent.memory:
+            logging.info(f"Orchestrator searching memory via agent: {first_agent_name}")
+            return first_agent.memory.search(query, **kwargs)
+        else:
+            logging.warning(f"Agent {first_agent_name} does not have a memory component.")
+            return []
 
 # Example usage (for testing purposes, can be removed later)
 if __name__ == "__main__":

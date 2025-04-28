@@ -5,13 +5,13 @@ import logging
 # Add the src directory to the Python path to enable absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ..llm_integration.google_gemini_connector import GoogleGeminiConnector
-from ..llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
-from ..agent.basic_agent import BasicAgent
-from ..agent.communication import AgentCommunicationChannel, AgentMessage
-from ..memory.memory import Memory
-from ..plugins.plugin_manager import PluginManager
-from ..task_management.task import Task
+from src.llm_integration.google_gemini_connector import GoogleGeminiConnector
+from src.llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
+from src.agent.basic_agent import BasicAgent
+from src.agent.communication import AgentCommunicationChannel, AgentMessage
+from src.memory.memory import Memory
+from src.plugins.plugin_manager import PluginManager
+from src.task_management.task import Task
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

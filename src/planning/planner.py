@@ -107,7 +107,8 @@ class BasicPlanner(Planner):
             if match:
                 task_description = match.group(1).strip()
                 if task_description:
-                    plan_tasks.append(Task(description=task_description))
+                    # Include input_data with a 'prompt' key for the agent
+                    plan_tasks.append(Task(description=task_description, input_data={"prompt": task_description}))
             else:
                 # If a line doesn't match the pattern, it might be part of the previous task description
                 # or introductory/concluding text. For this basic parser, we'll ignore non-matching lines

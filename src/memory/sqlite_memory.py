@@ -3,8 +3,8 @@ import json
 import logging
 from typing import Any, Dict, Optional, List
 from .memory_interface import MemoryInterface # Import the interface
-from ..llm_integration.llm_interface import LLMInterface # Import LLMInterface
-from ..llm_integration.google_gemini_connector import GoogleGeminiConnector # Import for example usage
+from src.llm_integration.llm_interface import LLMInterface # Import LLMInterface
+from src.llm_integration.google_gemini_connector import GoogleGeminiConnector # Import for example usage
 import json # Ensure json is imported
 
 # Configure basic logging
