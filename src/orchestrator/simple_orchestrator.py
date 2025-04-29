@@ -6,15 +6,19 @@ from typing import List, Dict, Any, Optional
 # Add the src directory to the Python path to enable absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.task_management.task import Task
-from src.task_management.task_queue import TaskQueue
-from src.agent.agent import Agent
+# Remove old Task and TaskQueue imports if no longer needed directly
+# from src.task_management.task import Task
+# from src.task_management.task_queue import TaskQueue
+# from src.agent.agent import Agent # Keep if agents list is kept, remove otherwise
 from src.llm_integration.llm_interface import LLMInterface
-from src.agent.basic_agent import BasicAgent # Assuming BasicAgent for initial implementation
-from src.planning.planner import Planner # Import Planner
+# from src.agent.basic_agent import BasicAgent # Remove if not used in example
+from src.planning.planner import AdvancedPlanner # Import AdvancedPlanner instead of Planner
+from src.planning.plan_models import Plan, Step # Import Plan and Step
+from src.planning.strategy_selector import StrategySelector # Import StrategySelector
+from src.execution.plan_executor import PlanExecutor # Import PlanExecutor
+from src.plugins.plugin_manager import PluginManager # Import PluginManager
 from src.llm_integration.google_gemini_connector import GoogleGeminiConnector
 from src.llm_integration.openai_chatgpt_connector import OpenAIChatGPTConnector
-from src.agent.communication import AgentCommunicationChannel # Import AgentCommunicationChannel
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,169 +27,151 @@ class SimpleOrchestrator:
     """
     A simple orchestrator that manages a task queue and a pool of agents
     to execute tasks sequentially.
+    Refactored to use AdvancedPlanner, StrategySelector, PlanExecutor, and Plan objects.
     """
 
-    def __init__(self, agents: List[Agent], planner: Planner):
+    def __init__(self, plugin_manager: PluginManager, llm_connector: LLMInterface, memory_interface: Optional[Any] = None): # Added llm_connector
         """
         Initializes the SimpleOrchestrator.
 
         Args:
-            agents: A list of Agent instances available to the orchestrator.
+            plugin_manager: Manages available tools/plugins for plan execution.
+            llm_connector: The LLM connector instance to be used by planners requiring it.
+            memory_interface: Interface for accessing relevant memory/state (optional).
         """
-        self._task_queue = TaskQueue()
-        self._communication_channel = AgentCommunicationChannel() # Instantiate communication channel
-        self._planner = planner # Store the planner instance
-        # Store agents, ensuring they are initialized with the communication channel
-        # The agents list passed to the constructor should ideally already have the channel
-        # For this simple orchestrator, we'll just store them.
-        self._agents: Dict[str, Agent] = {agent.get_name(): agent for agent in agents}
-        self._agent_names = list(self._agents.keys())
-        self._next_agent_index = 0
-        logging.info(f"Orchestrator initialized with agents: {self._agent_names}")
+        # Removed: self._task_queue = TaskQueue()
+        # Removed: self._communication_channel = AgentCommunicationChannel()
+        # Removed: self._planner = planner
+        # Removed agent storage and routing logic
+        # self._agents: Dict[str, Agent] = {agent.get_name(): agent for agent in agents}
+        # self._agent_names = list(self._agents.keys())
+        # self._next_agent_index = 0
 
-    def add_task(self, task: Task):
-        """
-        Adds a task to the orchestrator's task queue.
+        # Prepare configurations for planners that need specific arguments
+        planner_configs = {
+            "LLM": {"llm": llm_connector}
+            # Add configs for other planners like HTN if they need specific init args
+        }
 
-        Args:
-            task: The Task object to add.
-        """
-        self._task_queue.add_task(task)
+        self._strategy_selector = StrategySelector(planner_configs=planner_configs) # Instantiate StrategySelector with configs
+        self._plugin_manager = plugin_manager # Store PluginManager (acts as tool registry)
+        self._plan_executor = PlanExecutor(tool_registry=self._plugin_manager) # Instantiate PlanExecutor
+        self._memory_interface = memory_interface # Store memory interface (optional)
 
-    def process_goal(self, goal_description: str, initial_context: Optional[Dict[str, Any]] = None):
+        logging.info("SimpleOrchestrator initialized with StrategySelector and PlanExecutor.")
+
+    # Removed add_task method
+    # def add_task(self, task: Task): ...
+
+    def process_goal(self, goal_description: str, current_state: Optional[Dict[str, Any]] = None, plan_history: Optional[List[Plan]] = None) -> Optional[Plan]:
         """
-        Processes a high-level goal by generating a plan and adding tasks to the queue.
+        Processes a high-level goal by selecting a planner, generating a plan.
 
         Args:
             goal_description: The description of the high-level goal.
-            initial_context: Optional initial context for planning.
-        """
-        logging.info(f"Orchestrator received goal: '{goal_description}'. Generating plan...")
-        plan_tasks = self._planner.generate_plan(goal_description, initial_context)
-        logging.info(f"Planner generated {len(plan_tasks)} tasks.")
-        for task in plan_tasks:
-            self.add_task(task)
-        logging.info("Generated tasks added to the queue.")
-        return plan_tasks
-
-    def run(self):
-        """
-        Runs the orchestrator, processing tasks from the queue sequentially.
-        A rudimentary routing mechanism is implemented: tasks are assigned
-        to the first available agent in the provided list.
-        """
-        logging.info("Orchestrator started.")
-        while not self._task_queue.is_empty():
-            task = self._task_queue.get_next_task()
-            if task:
-                # Rudimentary routing: Assign to the first agent for now
-                # In the future, this will involve more complex logic
-                if not self._agents:
-                    logging.error("No agents available to process tasks.")
-                    task.update_status("failed")
-                    task.add_output_data("error", "No agents available")
-                    continue
-
-                # Get the first agent (rudimentary routing)
-                agent_name = self._agent_names[self._next_agent_index]
-                agent = self._agents[agent_name]
-
-                logging.info(f"Assigning task {task.task_id} to agent {agent.get_name()}")
-                processed_task = agent.process_task(task)
-                logging.info(f"Task {processed_task.task_id} processed with status: {processed_task.status}")
-
-                # Update the index for round-robin
-                self._next_agent_index = (self._next_agent_index + 1) % len(self._agent_names)
-
-                # Process messages for each agent
-                for agent in self._agents.values():
-                    messages = agent.receive_messages()
-                    for message in messages:
-                        agent.handle_message(message)
-
-        logging.info("Orchestrator finished processing all tasks.")
-
-    def get_tasks(self) -> List[Task]:
-        """
-        Returns the current list of tasks in the orchestrator's queue.
-        Note: This returns a copy of the tasks currently in the queue.
-        """
-        # Access the internal task queue's tasks.
-        # Depending on the TaskQueue implementation, this might need adjustment.
-        # Assuming TaskQueue has a method to get tasks or is iterable.
-        # For now, let's assume direct access for simplicity in this example.
-        # A more robust TaskQueue might require a dedicated method like get_all_tasks().
-        # Use the new get_all_tasks method from TaskQueue
-        return self._task_queue.get_all_tasks()
-
-    def search_memory(self, query: str, **kwargs) -> List[Dict[str, Any]]:
-        """
-        Searches the memory of the first agent managed by the orchestrator.
-        In a more complex system, this might search a shared memory or
-        coordinate search across multiple agents' memories.
-
-        Args:
-            query: The search query string.
-            **kwargs: Additional parameters for the memory search.
+            current_state: The current state of the system/environment (optional).
+            plan_history: History of previous plans (optional).
 
         Returns:
-            A list of search results from the agent's memory.
+            The generated Plan object, or None if planning fails.
         """
-        if not self._agents:
-            logging.warning("No agents available to perform memory search.")
-            return []
+        logging.info(f"Orchestrator received goal: '{goal_description}'. Selecting planner and generating plan...")
+        # Use StrategySelector to get a planner (assuming a method like select_planner exists)
+        # This might need adjustment based on StrategySelector's actual interface
+        planner: AdvancedPlanner = self._strategy_selector.select_strategy(goal=goal_description, current_state={}) # Example selection, corrected method call
 
-        # Access the memory of the first agent
-        first_agent_name = self._agent_names[0]
-        first_agent = self._agents[first_agent_name]
+        if not planner:
+            logging.error("StrategySelector failed to select a planner.")
+            return None
 
-        # Assuming the agent has a 'memory' attribute that implements MemoryInterface
-        if hasattr(first_agent, 'memory') and first_agent.memory:
-            logging.info(f"Orchestrator searching memory via agent: {first_agent_name}")
-            return first_agent.memory.search(query, **kwargs)
-        else:
-            logging.warning(f"Agent {first_agent_name} does not have a memory component.")
-            return []
+        # Gather necessary inputs for the planner
+        available_tools = [] # TODO: Implement proper ToolSpec retrieval from PluginManager
+        # Use provided memory interface or None
+        memory_interface = self._memory_interface
+        # Use provided current_state or a placeholder
+        current_state = current_state if current_state is not None else {}
+        # Use provided plan_history or None
+        plan_history = plan_history if plan_history is not None else []
+
+        try:
+            plan = planner.generate_plan(
+                goal=goal_description,
+                current_state=current_state,
+                available_tools=available_tools,
+                memory_interface=memory_interface,
+                plan_history=plan_history
+            )
+            if plan:
+                logging.info(f"Planner generated plan with {len(plan.steps)} steps.")
+            else:
+                logging.warning("Planner returned None (no plan generated).")
+            return plan
+        except Exception as e:
+            logging.error(f"Error during plan generation: {e}", exc_info=True)
+            return None
+
+    def run(self, plan: Plan):
+        """
+        Executes a given plan using the PlanExecutor.
+
+        Args:
+            plan: The Plan object to execute.
+        """
+        if not plan:
+            logging.warning("Orchestrator received an empty plan. Nothing to execute.")
+            return
+
+        logging.info(f"Orchestrator starting execution of plan {plan.metadata.get('plan_id', 'N/A')}...")
+        try:
+            # PlanExecutor handles the step-by-step execution
+            execution_result = self._plan_executor.execute_plan(plan)
+            logging.info(f"Plan {plan.metadata.get('plan_id', 'N/A')} execution finished. Result: {execution_result}")
+            # TODO: Handle execution result (e.g., success, failure, partial completion)
+        except Exception as e:
+            logging.error(f"Error during plan execution: {e}", exc_info=True)
+            # TODO: Implement error handling/replanning logic if needed
+
+    # Removed get_tasks method
+    # def get_tasks(self) -> List[Task]: ...
+
+    # Removed search_memory method (memory access should be handled via planner/executor context)
+    # def search_memory(self, query: str, **kwargs) -> List[Dict[str, Any]]: ...
 
 # Example usage (for testing purposes, can be removed later)
 if __name__ == "__main__":
-    # Create dummy LLM connectors
-    # Create actual LLM connectors
-    llm_connector_1 = GoogleGeminiConnector("gemini-pro") # Use a real Gemini model name
-    llm_connector_2 = OpenAIChatGPTConnector("gpt-4") # Use a real OpenAI model name
-
-    # Create a communication channel instance
-    communication_channel = AgentCommunicationChannel()
-
-    # Create basic agents, passing the communication channel, memory, and plugin manager
-    # Note: Memory and PluginManager are not used by SimpleOrchestrator directly,
-    # but are passed to agents during their creation.
+    # Setup necessary components
     from src.memory.memory import Memory
     from src.plugins.plugin_manager import PluginManager
+    # Import a specific planner if needed for StrategySelector or direct use (e.g., HTNPlanner)
+    # from src.planning.htn_planner import HTNPlanner
 
     memory = Memory() # Instantiate Memory
     plugin_manager = PluginManager() # Instantiate PluginManager
+    # TODO: Register some dummy tools/plugins with the plugin_manager for testing
+    # plugin_manager.register_plugin(...)
 
-    agent_alpha = BasicAgent("AlphaAgent", llm_connector_1, communication_channel, memory, plugin_manager)
-    agent_beta = BasicAgent("BetaAgent", llm_connector_2, communication_channel, memory, plugin_manager)
+    # Removed agent instantiation as they are not directly passed to the orchestrator anymore
+    # agent_alpha = BasicAgent(...)
+    # agent_beta = BasicAgent(...)
 
-    # Create the orchestrator with the agents and a basic planner
-    from src.planning.planner import BasicPlanner # Import BasicPlanner
-    basic_planner = BasicPlanner()
-    orchestrator = SimpleOrchestrator(agents=[agent_alpha, agent_beta], planner=basic_planner)
+    # Removed BasicPlanner instantiation
+    # basic_planner = BasicPlanner()
 
-    # Instead of creating individual tasks, process a high-level goal
+    # Instantiate the refactored orchestrator
+    # Pass plugin_manager and optionally memory
+    orchestrator = SimpleOrchestrator(plugin_manager=plugin_manager, memory_interface=memory)
+
+    # Process a high-level goal to generate a plan
     high_level_goal = "Develop a simple task management system."
-    orchestrator.process_goal(high_level_goal)
+    # Provide placeholders for state, history etc. as needed by the planner selected by StrategySelector
+    generated_plan = orchestrator.process_goal(
+        goal_description=high_level_goal,
+        current_state={}, # Placeholder
+        plan_history=[] # Placeholder
+    )
 
-    # The tasks generated by process_goal are already added to the queue
-
-    # Demonstrate task delegation (optional, can be removed or adapted)
-    # delegation_task = Task("Delegated task example", input_data={"prompt": "This task was delegated."})
-    # agent_alpha.delegate_task(delegation_task, "BetaAgent")
-
-    # If using delegation, add the delegated task to the queue
-    # orchestrator.add_task(delegation_task)
-
-    # Run the orchestrator
-    orchestrator.run()
+    # Execute the generated plan
+    if generated_plan:
+        orchestrator.run(plan=generated_plan)
+    else:
+        logging.error("Failed to generate a plan for the goal.")

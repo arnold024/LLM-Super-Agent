@@ -1,13 +1,69 @@
 import abc
 import re # Import regex for parsing LLM output
 from typing import List, Dict, Any, Optional
-from src.task_management.task import Task
-from src.llm_integration.llm_interface import LLMInterface # Import LLMInterface
-from src.llm_integration.google_gemini_connector import GoogleGeminiConnector # Import for example usage
+from src.task_management.task import Task # Keep for BasicPlanner compatibility for now
+from src.llm_integration.llm_interface import LLMInterface
+# from src.llm_integration.google_gemini_connector import GoogleGeminiConnector # Import for example usage
+from src.memory.memory_interface import MemoryInterface # Import MemoryInterface
+from .plan_models import Plan, Step, ToolSpec # Import new plan models
 
-class Planner(abc.ABC):
+# --- Advanced Planner Definition ---
+
+class AdvancedPlanner(abc.ABC):
     """
-    Abstract base class for a planner.
+    Abstract base class for an advanced planner capable of complex planning,
+    potentially using different strategies and incorporating feedback.
+    """
+
+    @abc.abstractmethod
+    def generate_plan(self,
+                      goal: str,
+                      current_state: Dict[str, Any],
+                      available_tools: List[ToolSpec],
+                      memory_interface: MemoryInterface,
+                      plan_history: Optional[List[Plan]] = None) -> Plan:
+        """
+        Generates a structured plan to achieve a given goal.
+
+        Args:
+            goal: The objective to achieve.
+            current_state: The current context or state of the system/environment.
+            available_tools: Specifications of tools/agents available for planning.
+            memory_interface: Interface to access long-term memory.
+            plan_history: Optional history of previous plans for context.
+
+        Returns:
+            A Plan object containing steps, dependencies, and assignments.
+        """
+        pass
+
+    @abc.abstractmethod
+    def adjust_plan(self,
+                    current_plan: Plan,
+                    feedback: Dict[str, Any],
+                    current_state: Dict[str, Any],
+                    memory_interface: MemoryInterface) -> Plan:
+        """
+        Adjusts an existing plan based on execution feedback and current state.
+
+        Args:
+            current_plan: The plan currently being executed.
+            feedback: Information about the execution (e.g., step success/failure, outputs).
+            current_state: The updated state of the system/environment.
+            memory_interface: Interface to access long-term memory.
+
+
+        Returns:
+            An updated Plan object.
+        """
+        pass
+
+
+# --- Legacy Planner Definition (To be potentially deprecated/refactored) ---
+
+class LegacyPlanner(abc.ABC): # Renamed from Planner
+    """
+    Abstract base class for a planner (Legacy version using Task objects).
     Planners are responsible for generating sequences of tasks or actions
     to achieve a specific goal.
     """
@@ -42,9 +98,9 @@ class Planner(abc.ABC):
         pass
 
 # A simple placeholder planner implementation
-class BasicPlanner(Planner):
+class BasicPlanner(LegacyPlanner): # Inherits from LegacyPlanner now
     """
-    A basic concrete implementation of the Planner class that uses an LLM
+    A basic concrete implementation of the LegacyPlanner class that uses an LLM
     to generate plans.
     """
 

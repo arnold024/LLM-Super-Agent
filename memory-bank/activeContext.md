@@ -27,3 +27,8 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 [2025-04-25 18:36:29] Recent Changes: Implemented a basic consolidate method in SQLiteMemory, with optional LLM integration for strategy suggestions.
 [2025-04-25 18:40:14] Recent Changes: Enhanced the main CLI in main.py with basic command parsing and improved output.
 [2025-04-25 18:47:39] Recent Changes: Added 'list tasks' and 'search memory' commands to the main CLI in main.py.
+[2025-04-29 16:14:32] - Current Focus: Designing Advanced Planner with HTNPlanner, StrategySelector, and ReplanningManager components.
+[2025-04-29 16:14:32] - Recent Changes: Created AdvancedPlanner_Design.md in memory-bank.
+[2025-04-29 16:37:10] - Recent Changes: Enhanced HTNPlanner in `src/planning/htn_planner.py` to map primitive operators (plan steps) to available tools based on tool name matching. Updated corresponding tests in `src/tests/test_htn_planner.py`.
+[2025-04-29 18:37:48] - Recent Changes: Integrated `LLMPlanner` into `StrategySelector` (`src/planning/strategy_selector.py`), registering it and setting it as the default planner.
+[2025-04-29 18:46:11] - Recent Changes: Fixed TypeError in `LLMPlanner.generate_plan` by changing `Step(step_id=...)` to `Step(id=...)` in `src/planning/llm_planner.py`.

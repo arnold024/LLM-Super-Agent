@@ -16,3 +16,4 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 ## Implementation Details
 
 *
+[2025-04-29 16:13:23] - Added Advanced Planner design document outlining HTNPlanner, StrategySelector, and ReplanningManager components.

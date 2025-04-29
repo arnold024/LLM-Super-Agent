@@ -13,6 +13,7 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 ## Architectural Patterns
 
 *
+[2025-04-29 16:14:04] - Introduced architectural patterns for Advanced Planner: StrategySelector, HTNPlanner, ReplanningManager for dynamic planning workflows.
 
 ## Testing Patterns
 

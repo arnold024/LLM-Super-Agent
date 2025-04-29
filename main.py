@@ -44,81 +44,36 @@ def main():
     planner = BasicPlanner(llm_connector=gemini_llm) # Use the BasicPlanner with a Gemini connector
 
     # Create the orchestrator with the agents and the planner
-    orchestrator = SimpleOrchestrator(agents=[agent_gemini, agent_openai], planner=planner)
+    # Choose one of the connectors created earlier
+    primary_llm = gemini_llm
+    orchestrator = SimpleOrchestrator(plugin_manager=plugin_manager, llm_connector=primary_llm)
 
     print("LLMSuperAgent initialized.")
     print("Available commands: goal <description>, list tasks, search memory <query>, exit")
 
     # Basic CLI loop
-    while True:
-        try:
-            user_input = input("Enter command: ")
-            if user_input.lower() == 'exit':
-                break
-            if not user_input.strip():
-                continue
+    # --- Temporary hardcoded goal for testing ---
+    test_goal = "visit https://www.dentalpatientforum.com, pick a random forum topic and generate a summary about it for a facebook post"
+    print(f"Automatically processing test goal: {test_goal}")
+    try:
+        # Assuming 'orchestrator' is already initialized
+        generated_plan = orchestrator.process_goal(test_goal) # Pass the goal string directly
 
-            # Simple command parsing
-            parts = user_input.strip().split(maxsplit=1)
-            command = parts[0].lower()
-            args = parts[1] if len(parts) > 1 else ""
-            if command == 'add':
-                command = 'goal'
+        if generated_plan and generated_plan.metadata.get('status') != "failed":
+            print(f"\nPlan generated successfully (ID: {generated_plan.metadata.get('plan_id', 'N/A')}). Executing plan...")
+            orchestrator.run(plan=generated_plan)
+            print(f"\nPlan execution finished. Final plan status: {generated_plan.status}")
+        else:
+            print("\nPlanning failed or no plan generated, cannot execute.")
+            if generated_plan:
+                 print(f"Plan Status: {generated_plan.metadata.get('status')}")
+                 print(f"Plan Failure Reason: {generated_plan.metadata.get('reason', 'N/A')}")
 
-            if command == 'goal' and args:
-                print(f"Received goal: {args}")
-                plan_tasks = orchestrator.process_goal(args)
-                print("\nRunning orchestrator...")
-                orchestrator.run()
-                print("\nTask Processing Complete.")
-                # Display outputs for the tasks just processed (the plan)
-                print("\nTask Results:")
-                if plan_tasks:
-                    for idx, task in enumerate(plan_tasks, start=1):
-                        print(f"{idx}. [{task.status}] {task.description}")
-                        if task.output_data:
-                            for key, value in task.output_data.items():
-                                print(f"    {key}: {value}")
-                else:
-                    print("No task results available.")
-
-            elif command == 'list' and args == 'tasks':
-                print("\nCurrent Tasks in Queue:")
-                tasks = orchestrator.get_tasks()
-                if tasks:
-                    for i, task in enumerate(tasks):
-                        print(f"{i+1}. {task.description} (Status: {task.status})")
-                else:
-                    print("No tasks in the queue.")
-
-            elif command == 'search' and args.startswith('memory '):
-                query = args[len('memory '):].strip()
-                if query:
-                    print(f"\nSearching memory for: '{query}'")
-                    results = orchestrator.search_memory(query)
-                    if results:
-                        print("Search Results:")
-                        for result in results:
-                            print(f"- Key: {result.get('key', 'N/A')}, Value: {result.get('value', 'N/A')}")
-                    else:
-                        print("No results found in memory.")
-                else:
-                    print("Please provide a search query for memory.")
-
-            elif command == 'exit':
-                break
-
-            elif not user_input.strip():
-                print("Please enter a command.")
-                continue
-
-            else:
-                print(f"Unknown command: {command}. Type 'exit' to quit.")
-                continue
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            logging.error(f"An error occurred: {e}", exc_info=True) # Log the full traceback
+    except Exception as e:
+        print(f"An error occurred during automatic goal processing: {e}")
+        import traceback
+        traceback.print_exc()
+    # --- End temporary testing block ---
 
     print("Exiting LLMSuperAgent CLI.")
 

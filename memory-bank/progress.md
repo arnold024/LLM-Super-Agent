@@ -31,3 +31,6 @@ YYYY-MM-DD HH:MM:SS - Log of updates made.
 [2025-04-25 18:48:08] Completed: Added 'list tasks' and 'search memory' commands to the main CLI.
 [2025-04-28 17:05:43] - Created requirements.txt file with project dependencies.
 [2025-04-28 17:08:34] - Updated .gitignore to ignore memory.db, __pycache__, and *.pyc files.
+[2025-04-29 18:37:59] Completed: Integrated `LLMPlanner` into `StrategySelector`, registered it, and set it as the default planner.
+[2025-04-29 18:46:24] Completed: Fixed `TypeError` in `LLMPlanner.generate_plan` by correcting `Step` instantiation argument from `step_id` to `id`.
+[2025-04-29 18:49:22] - Completed: Fixed `AttributeError` in `LLMPlanner.generate_plan` by changing prerequisite assignment from `steps[-1].step_id` to `steps[-1].id` in `src/planning/llm_planner.py`.
