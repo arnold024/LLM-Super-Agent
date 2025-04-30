@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional
+from src.planning.plan_models import ToolSpec
 import logging
 
 # Configure basic logging
@@ -67,6 +68,26 @@ class PluginManager:
         else:
             logging.warning(f"Attempted to unregister non-existent plugin: {plugin_name}")
 
+    def get_tool_specs(self) -> List[ToolSpec]:
+            """
+            Retrieves a list of ToolSpec objects for all registered plugins.
+            Currently generates placeholder specs.
+
+            Returns:
+                A list of ToolSpec objects.
+            """
+            tool_specs = []
+            for plugin_name in self._plugins.keys():
+                # Create a basic ToolSpec using the registration name
+                spec = ToolSpec(
+                    id=plugin_name,
+                    name=plugin_name,
+                    description=f"Placeholder tool: {plugin_name}",
+                    input_schema=None,  # Placeholder
+                    output_schema=None  # Placeholder
+                )
+                tool_specs.append(spec)
+            return tool_specs
 # Example usage (for testing purposes, can be removed later)
 if __name__ == "__main__":
     class DummyPlugin:

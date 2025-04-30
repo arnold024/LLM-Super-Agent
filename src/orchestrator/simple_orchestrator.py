@@ -85,7 +85,7 @@ class SimpleOrchestrator:
             return None
 
         # Gather necessary inputs for the planner
-        available_tools = [] # TODO: Implement proper ToolSpec retrieval from PluginManager
+        available_tools = self._plugin_manager.get_tool_specs()
         # Use provided memory interface or None
         memory_interface = self._memory_interface
         # Use provided current_state or a placeholder

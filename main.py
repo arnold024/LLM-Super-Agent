@@ -14,6 +14,10 @@ from plugins.plugin_manager import PluginManager
 from task_management.task import Task
 from orchestrator.simple_orchestrator import SimpleOrchestrator
 from planning.planner import BasicPlanner # Import BasicPlanner
+from src.plugins.basic_tools.placeholders import (
+    browse_web, extract_content, random_select,
+    process_text, summarize_text, format_for_social
+)
 
 def main():
     """
@@ -25,6 +29,17 @@ def main():
     communication_channel = AgentCommunicationChannel()
     memory = Memory() # Use in-memory Memory temporarily
     plugin_manager = PluginManager()
+
+    # Register placeholder tools
+    plugin_manager.register_plugin("browse_web", browse_web)
+    plugin_manager.register_plugin("extract_content", extract_content)
+    plugin_manager.register_plugin("random_select", random_select)
+    plugin_manager.register_plugin("process_text", process_text)
+    plugin_manager.register_plugin("summarize_text", summarize_text)
+    plugin_manager.register_plugin("format_for_social", format_for_social)
+    # Add aliases if needed, e.g., for navigation/access
+    plugin_manager.register_plugin("web_access", browse_web)
+    plugin_manager.register_plugin("web_navigation", browse_web)
 
     # Create LLM connectors (using GoogleGeminiConnector)
     # Note: Ensure GOOGLE_API_KEY environment variable is set for this to work
